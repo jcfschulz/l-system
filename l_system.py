@@ -82,13 +82,17 @@ def turtle_lines(s, delta, d, draw_on="F", draw_off="f", round_dec=10):
     elif draw_off.find(c)>=0:
       p = p+hlu[:,0]
     elif draw_on.find(c)>=0:
-      lines.append([p,p+hlu[:,0]])
+      if c=="f":
+        fac = 0.3
+      else: 
+        fac=1.
+      lines.append([p,p+fac*hlu[:,0]])
       points.append(p)
-      points.append(p+hlu[:,0])
+      points.append(p+fac*hlu[:,0])
       lines_idx.append(i)
       lines_idx.append(i+1)
       i+=2
-      p = p+hlu[:,0]
+      p = p+fac*hlu[:,0]
       
   return lines, np.array(points), np.array(lines_idx)
 
@@ -198,22 +202,21 @@ def export_collada(filename, points, indices):
 #delta = deg2rad(22.5)
 
 axiom = "A"
-productions = {"A": "[&FL!A]/////'[&FL!A]///////'[&FL!A]", "F": "S/////F", "S": "FL"} #, "L": "['''^^{-f+f+f-|-f+f+f}]" }
+productions = {"A": "[&FL!A]/////'[&FL!A]///////'[&FL!A]", "F": "S/////F", "S": "FL", "L": "['''^^{-f+f+f-|-f+f+f}]" }
 delta = deg2rad(22.5)
 
 if delta>np.pi:
   print "Warning: delta too high?"
 
-n = 7
+n = 5
 d = 1.
 plot3D = True #False
 
 t1 = time.time()
 s = string_replacement(axiom, productions, n)
-#s = "[&F/////[&F]]/////"
 t2 = time.time()
 print "time for string replacement: ", t2-t1, "s" 
-lines, points, lines_idx = turtle_lines(s, delta, d, "FG", "")
+lines, points, lines_idx = turtle_lines(s, delta, d, "FGf", "")
 t3 = time.time()
 print "time for lines creation: ", t3-t2, "s" 
 export_collada("/tmp/frac.dae", points, lines_idx)
