@@ -1,6 +1,6 @@
 import numpy as np
 import time
-#import collada
+import collada
 import re
 from asteval import Interpreter
 
@@ -47,11 +47,57 @@ def split_on_brackets(string):
   s = ""
   openbrackets = 0
   closebrackets = 0
-  for c in s:
+  for c in string:
+    if c==")":
+      openbrackets -= 1
+      if openbrackets == 0:
+        res.append(s)
+        s = ""
     s += c
-    if c="(":
-      res.append(s)
-      s = ""
+    if c=="(":
+      openbrackets += 1
+      if openbrackets == 1:
+        res.append(s)
+        s = ""
+  res.append(s)
+  return res
+
+def split_symbols(string, split_mode="single"):
+  i = 0
+  s = ""
+  res = []
+  while i<len(string):
+    if split_mode=="single" and string[i]==" ":
+      i += 1
+      continue
+    s += string[i]
+    if i+1<len(string):
+			if string[i+1]=="(":
+				brackets = 1
+				s += string[i+1]
+				i += 2
+				while brackets>0:
+					s += string[i]
+					if string[i]=="(":
+						brackets += 1
+					elif string[i]==")":
+						brackets -= 1
+					i += 1
+				res.append(s)
+				s = ""
+				continue
+			elif string[i]==" " and split_mode=="space":
+			  if len(s.strip())>0:
+			    res.append(s.strip())
+			  s = ""
+			elif split_mode=="single" and len(s)>=1:
+				res.append(s)
+				s = ""
+    i += 1
+  if len(s.strip())>0:
+    res.append(s.strip())
+  return res
+      
 
 def match_rule(rule, expression, pre_context, post_context):
   global symbols
@@ -69,25 +115,28 @@ def match_rule(rule, expression, pre_context, post_context):
   if rule[3] != None:
     conditions = rule[3].replace(" ","").split(",")
     for cond in conditions:
-      #if not eval_cond_expr(cond, symbols):
       if not aeval(cond):
         return False
 
   sfinal = ""
-  res_split = re.split("\(|,|\)",rule[4].replace(" ",""))
-  if len(res_split)<2:
-    return rule[4]
-  print rule[4]
-  for i in range(len(res_split)/2):
-    sfinal += res_split[2*i]
-    sfinal += "("
-    sfinal += str(aeval(res_split[2*i+1]))
-    sfinal += ")"
-
+  res_split = split_symbols(rule[4])
+  for r in res_split:
+    if r.find("(")>=0:
+      sfinal += r[:r.find("(")+1]
+      temp = aeval(r[r.find("(")+1:-1])
+      if type(temp)==tuple:
+        sfinal += str(temp[0])
+        for t in temp[1:]:
+          sfinal += ","
+          sfinal += str(t)
+      else:
+        sfinal += str(temp)
+      sfinal += ")"
+    else:
+      sfinal += r
   return sfinal
 
 aeval = Interpreter()
 axiom = "A(1)"
-#productions = {"A": {"params": (a), "expression": "A(a+1)B(2*a)", ""   }   }
-rule = ("S(i,j,k)","S(a,b,c)",None,"i<a, j>c","F[I(  2*(i+1)   )]")
-match_rule(rule, "S(5,6,7)", "S(1,10,3)", "A")
+rule = ("S(i,j,k)","S(a,b,c)",None,"i<a,j>c","F[I(i)]")
+print match_rule(rule, "S(5,6,7)", "S(1,10,3)", "A")
