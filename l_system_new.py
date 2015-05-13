@@ -42,26 +42,6 @@ def obtain_symbols(symbols, rule, expr, split_on="\(|,|\)"):
     symbols[rule_split[i]] = float(expr_split[i])
   return True
 
-def split_on_brackets(string):
-  res = []
-  s = ""
-  openbrackets = 0
-  closebrackets = 0
-  for c in string:
-    if c==")":
-      openbrackets -= 1
-      if openbrackets == 0:
-        res.append(s)
-        s = ""
-    s += c
-    if c=="(":
-      openbrackets += 1
-      if openbrackets == 1:
-        res.append(s)
-        s = ""
-  res.append(s)
-  return res
-
 def split_symbols(string, split_mode="single"):
   i = 0
   s = ""
