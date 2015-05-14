@@ -10,22 +10,6 @@ from asteval import Interpreter
 
 deg2rad = lambda alpha: alpha*2*np.pi/360.
 
-def string_replacement_context(sstart, productions, n, context_ignores=()): 
-  s = sstart
-  snew = ""
-  context = ""
-  i = 0
-  while i<len(s):
-    c = s[i]
-    if productions.has_key(c):
-      snew += productions[c]
-    else:
-      snew += c
-    if not context_ignores.has_key(c):
-      context = c
-    i += 1
-  return snew
-
 def obtain_symbols(symbols, rule, expr, split_on="\(|,|\)"):
   if rule==None:
     return True
@@ -34,7 +18,7 @@ def obtain_symbols(symbols, rule, expr, split_on="\(|,|\)"):
   if expr_split[0]!=rule_split[0]:
     return False
   if len(expr_split)!=len(rule_split):
-    print "wrong number of arguments for", expr_split[0], " : ", len(expr_split), "!=", len(rule_split) # better status message
+    print "wrong number of arguments for", expr_split[0], " : ", len(expr_split), "!=", len(rule_split)
     return False
   for i in range(1,len(expr_split)):
     if rule_split[i]=="":     # do better splitting without trailing empty string on match
@@ -80,8 +64,6 @@ def split_symbols(string, split_mode="single"):
       
 
 def match_rule(rule, expression, pre_context, post_context):
-  global symbols
-
   symbols = {}
   if not obtain_symbols(symbols,rule[1],expression):
     return False
@@ -116,7 +98,39 @@ def match_rule(rule, expression, pre_context, post_context):
       sfinal += r
   return sfinal
 
+def string_replacement_context(sstart, rules, n, context_ignores=()): 
+  snew = ""
+  context = [""]
+  m = False
+  
+  print sstart
+  for t in split_symbols(sstart):
+    print t, context[-1]
+    if t=="[":
+      context.append(context[-1])
+      snew += "["
+      continue
+    elif t=="]":
+      context.pop()
+      snew += "]"
+      continue
+    for r in rules:
+      m = match_rule(r, t, context[-1], None)
+      if not m==False:
+        snew += m
+        break
+    if m==False:
+      snew += t
+
+    if not (t[:t.find("(")] in context_ignores):
+      context[-1] = t
+
+  return snew
+
 aeval = Interpreter()
-axiom = "A(1)"
+axiom = "A(1,2)[BC]D"
 rule = ("S(i,j,k)","S(a,b,c)",None,"i<a,j>c","F[I(i)]")
+
+rules = [  (None,"A(i,j)",None,"i<10", "A(i+2,2*j)B"), (None,"B",None,None,"A(1,1)") ]
+
 print match_rule(rule, "S(5,6,7)", "S(1,10,3)", "A")
