@@ -10,21 +10,25 @@ from asteval import Interpreter
 
 deg2rad = lambda alpha: alpha*2*np.pi/360.
 
-def obtain_symbols(symbols, rule, expr, split_on="\(|,|\)"):
+def obtain_symbols(symbols, rule, expr):
   if rule==None:
     return True
-  rule_split = re.split(split_on,rule.replace(" ",""))  # do for all whitespaces
-  expr_split = re.split(split_on,expr.replace(" ",""))  # do for all whitespaces
-  if expr_split[0]!=rule_split[0]:
+  if rule.find("(")<0:
+    return True
+  rule_symbol = rule[:rule.find("(")]
+  expr_symbol = expr[:expr.find("(")]
+  if expr_symbol != rule_symbol:
     return False
-  if len(expr_split)!=len(rule_split):
-    print "wrong number of arguments for", expr_split[0], " : ", len(expr_split), "!=", len(rule_split)
+  rule_params = rule[rule.find("(")+1:rule.rfind(")")].split(",")
+  expr_params = expr[expr.find("(")+1:expr.rfind(")")].split(",")
+  if len(expr_params)!=len(rule_params):
+    print "wrong number of arguments for", expr_symbol, " : ", len(expr_params), "!=", len(rule_params)
     return False
-  for i in range(1,len(expr_split)):
-    if rule_split[i]=="":     # do better splitting without trailing empty string on match
-      continue
-    symbols[rule_split[i]] = float(expr_split[i])
+  print rule, rule.find("("), rule_symbol, rule_params, expr_params
+  for i in range(len(expr_params)):
+    symbols[rule_params[i]] = float(expr_params[i])
   return True
+
 
 def split_symbols(string, split_mode="single"):
   i = 0
