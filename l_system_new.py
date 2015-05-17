@@ -24,7 +24,6 @@ def obtain_symbols(symbols, rule, expr):
   if len(expr_params)!=len(rule_params):
     print "wrong number of arguments for", expr_symbol, " : ", len(expr_params), "!=", len(rule_params)
     return False
-  print rule, rule.find("("), rule_symbol, rule_params, expr_params
   for i in range(len(expr_params)):
     symbols[rule_params[i]] = float(expr_params[i])
   return True
@@ -102,14 +101,12 @@ def match_rule(rule, expression, pre_context, post_context):
       sfinal += r
   return sfinal
 
-def string_replacement_context(sstart, rules, n, context_ignores=()): 
+def string_replacement_context(sstart, rules, context_ignores=()): 
   snew = ""
   context = [""]
   m = False
   
-  print sstart
   for t in split_symbols(sstart):
-    print t, context[-1]
     if t=="[":
       context.append(context[-1])
       snew += "["
@@ -132,9 +129,8 @@ def string_replacement_context(sstart, rules, n, context_ignores=()):
   return snew
 
 aeval = Interpreter()
-axiom = "A(1,2)[BC]D"
-rule = ("S(i,j,k)","S(a,b,c)",None,"i<a,j>c","F[I(i)]")
 
+axiom = "A(1,2)[BC]D"
 rules = [  (None,"A(i,j)",None,"i<10", "A(i+2,2*j)B"), (None,"B",None,None,"A(1,1)") ]
 
-print match_rule(rule, "S(5,6,7)", "S(1,10,3)", "A")
+print string_replacement_context(axiom, rules)
