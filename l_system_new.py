@@ -68,6 +68,7 @@ def split_symbols(string, split_mode="single"):
 
 def match_rule(rule, expression, pre_context, post_context):
   symbols = {}
+  aeval = Interpreter()
   if not obtain_symbols(symbols,rule[1],expression):
     return False
   if not obtain_symbols(symbols,rule[0],pre_context):
@@ -101,7 +102,7 @@ def match_rule(rule, expression, pre_context, post_context):
       sfinal += r
   return sfinal
 
-def string_replacement_context(sstart, rules, context_ignores=()): 
+def string_replacement(sstart, rules, context_ignores=()): 
   snew = ""
   context = [""]
   m = False
@@ -128,9 +129,14 @@ def string_replacement_context(sstart, rules, context_ignores=()):
 
   return snew
 
-aeval = Interpreter()
+def eval_lsystem(axiom, rules, n):
+  string = axiom
+  for i in range(n):
+    string = string_replacement(string, rules)
+  return string
 
-axiom = "A(1,2)[BC]D"
-rules = [  (None,"A(i,j)",None,"i<10", "A(i+2,2*j)B"), (None,"B",None,None,"A(1,1)") ]
 
-print string_replacement_context(axiom, rules)
+axiom = "F-F-F-F"
+rules  = [ (None, "F", None, None, "F-F+F+FF-F-F+F") ]
+
+print eval_lsystem(axiom, rules, 1)
